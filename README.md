@@ -157,7 +157,7 @@ applicant-scorizer/
 ├── server.py
 ├── scoring.py
 ├── test_clients.py
-└── tests/
+└── json/
     ├── strong.json
     ├── medium.json
     └── weak.json
