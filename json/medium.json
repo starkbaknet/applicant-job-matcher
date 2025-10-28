@@ -1,0 +1,74 @@
+{
+  "job": {
+    "id": "job-mid",
+    "title": "AI Specialist (Python/Odoo/React, PostgreSQL)",
+    "reference": "RF0002",
+    "numberOfVacancies": 2,
+    "status": "published",
+    "isOpen": true,
+    "jobRequirements": "<ul><li>Python (Odoo), React.js, PostgreSQL, Docker, Git, REST/gRPC</li></ul>",
+    "roleSummary": "<p>We build modern web apps and ML-enabled services.</p>",
+    "dutiesAndResponsibilities": "<ul><li>Design microservices, code reviews, CI/CD</li></ul>",
+    "minimumExperience": "1",
+    "maximumExperience": "5",
+    "educationLevel": "bachelor",
+    "salaryType": "range",
+    "minimumSalary": 1000,
+    "maximumSalary": 2000,
+    "currency": "AFN",
+    "period": "monthly",
+    "workType": "full_time",
+    "gender": "any",
+    "nationality": "any",
+    "language": "any",
+    "publishDate": "2025-10-25",
+    "expiryDate": "2025-10-29",
+    "company": {
+      "id": "c-mid",
+      "name": "Netlinks Ltd.",
+      "isPublic": true,
+      "profile": { "workPolicy": "remote" },
+      "industryType": { "id": "it", "name": "Information Technology" }
+    },
+    "country": { "code": "AF", "name": "Afghanistan" },
+    "province": { "name": "Badghis" },
+    "area": { "name": "Software Engineering" }
+  },
+  "applicant": {
+    "id": "app-mid",
+    "name": "Meera Analyst",
+    "email": "meera@example.com",
+    "bio": "Data analyst doing Python scripting and Excel automation; some ETL and dashboards.",
+    "profile": {
+      "nationality": "Afghan",
+      "speakingLanguages": ["English"],
+      "country": { "code": "AF", "name": "Afghanistan" },
+      "province": { "name": "Herat" }
+    },
+    "skills": [
+      { "skill": { "name": "Python" } },
+      { "skill": { "name": "Git" } },
+      { "skill": { "name": "Excel" } },
+      { "skill": { "name": "ETL" } }
+    ],
+    "functionalAreas": [{ "area": { "name": "Data/Analytics" } }],
+    "educations": [
+      {
+        "level": "bachelor",
+        "instituteName": "Herat University",
+        "fieldOfStudy": "Information Systems"
+      }
+    ],
+    "experiences": [
+      {
+        "title": "Data Analyst",
+        "companyName": "Insight Co",
+        "startDate": "2022-01-01T00:00:00.000Z",
+        "endDate": "2024-07-01T00:00:00.000Z",
+        "description": "Python scripts for data cleaning, Git for versioning, Excel dashboards"
+      }
+    ],
+    "awards": [],
+    "certificates": []
+  }
+}

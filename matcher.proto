@@ -1,0 +1,330 @@
+syntax = "proto3";
+
+package matcher;
+
+option go_package = "matcherpb";
+
+// ======= Entities =======
+
+message Coordinate {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message Country {
+  string id = 1;
+  string code = 2;    // e.g., "AF"
+  string name = 3;    // e.g., "Afghanistan"
+  Coordinate coordinate = 4;
+  bool isProvinceNameAllowed = 5;
+}
+
+message Province {
+  string id = 1;
+  string name = 2;
+  bool isCapital = 3;
+  Coordinate coordinate = 4;
+  string country_id = 5; // fk
+}
+
+message Area {
+  string id = 1;
+  string name = 2;
+  bool isVerified = 3;
+}
+
+message CompanyProfile {
+  string id = 1;
+  string about = 2;
+  int32 foundedAt = 3;
+  string email = 4;
+  string phone = 5;
+  string website = 6;
+  string whatsapp = 7;
+  string linkedin = 8;
+  string github = 9;
+  string facebook = 10;
+  string xTwitter = 11;
+  string instagram = 12;
+  string youtube = 13;
+  string logoUrl = 14;
+  string logoThumbnailUrl = 15;
+  string introductionVideoUrl = 16;
+  string workPolicy = 17;   // e.g., "remote"
+  string address = 18;
+  Coordinate coordinate = 19;
+  string zipCode = 20;
+  string provinceName = 21;
+  string country_id = 22;
+  string province_id = 23;
+}
+
+message IndustryType {
+  string id = 1;
+  string name = 2;
+}
+
+message Company {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string bio = 4;
+  bool isPublic = 5;
+  string licenseVerifiedAt = 6;
+  CompanyProfile profile = 7;
+  string parent = 8;
+  string companyType = 9;
+  IndustryType industryType = 10;
+}
+
+message Job {
+  string id = 1;
+  string title = 2;
+  string reference = 3;
+  int32 numberOfVacancies = 4;
+  string status = 5;
+  bool isOpen = 6;
+
+  string jobRequirements = 7;          // raw HTML ok
+  string roleSummary = 8;               // raw HTML ok
+  string dutiesAndResponsibilities = 9; // raw HTML ok
+
+  string minimumExperience = 10; // keep as string to mirror your data
+  string maximumExperience = 11;
+  string educationLevel = 12;
+
+  string salaryType = 13; // range, fixed
+  double minimumSalary = 14;
+  double maximumSalary = 15;
+  double fixedSalary = 16;
+  string currency = 17;
+  string period = 18;     // monthly, yearly, etc.
+
+  string workType = 19;   // full_time, part_time
+  string gender = 20;
+  string nationality = 21;
+  string language = 22;
+
+  string provinceName = 23;
+  string publishDate = 24;
+  string expiryDate = 25;
+  string promotedUntil = 26;
+  bool forMembersOnly = 27;
+  string submissionGuidelines = 28;
+  string submissionThroughout = 29;
+  string submissionEmail = 30;
+  string submissionLink = 31;
+
+  string createdAt = 32;
+  string updatedAt = 33;
+  string deletedAt = 34;
+
+  Company company = 35;
+  Country country = 36;
+  Province province = 37;
+  Area area = 38;
+
+  string createdBy = 39;
+  string updatedBy = 40;
+
+  message Department {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string company = 4;
+    string parent = 5;
+  }
+  Department department = 41;
+
+  string workflow = 42;
+}
+
+// ======= Applicant side =======
+
+message Attachment {
+  string key = 1;
+  string url = 2;
+  string name = 3;
+  int64 size = 4;
+  int32 width = 5;
+  int32 height = 6;
+  bool isPublic = 7;
+  string mimeType = 8;
+}
+
+message Resume {
+  string id = 1;
+  Attachment attachment = 2;
+  bool isDefault = 3;
+  string createdAt = 4;
+  string updatedAt = 5;
+  string deletedAt = 6;
+  string user = 7;
+}
+
+message Award {
+  string id = 1;
+  string title = 2;
+  string issuedBy = 3;
+  string issuedDate = 4;
+  string description = 5;
+  Attachment attachment = 6;
+  string link = 7;
+  string deletedAt = 8;
+  string createdAt = 9;
+  string updatedAt = 10;
+  string user = 11;
+}
+
+message Certificate {
+  string id = 1;
+  string title = 2;
+  string issuedBy = 3;
+  string issuedDate = 4;
+  string expiryDate = 5;
+  string description = 6;
+  Attachment attachment = 7;
+  string link = 8;
+  string deletedAt = 9;
+  string createdAt = 10;
+  string updatedAt = 11;
+  string user = 12;
+}
+
+message SkillRef {
+  string id = 1;
+  string createdAt = 2;
+  string deletedAt = 3;
+  string user = 4;
+  message Skill {
+    string id = 1;
+    string name = 2;
+    bool isVerified = 3;
+    string createdAt = 4;
+    string updatedAt = 5;
+    string deletedAt = 6;
+    string user = 7;
+  }
+  Skill skill = 5;
+}
+
+message FunctionalAreaRef {
+  string id = 1;
+  string deletedAt = 2;
+  string createdAt = 3;
+  string user = 4;
+  message AreaInner {
+    string id = 1;
+    string name = 2;
+    bool isVerified = 3;
+    string createdAt = 4;
+    string updatedAt = 5;
+    string deletedAt = 6;
+    string user = 7;
+  }
+  AreaInner area = 5;
+}
+
+message Education {
+  string id = 1;
+  string level = 2; // high_school, bachelor, masters, etc.
+  string instituteName = 3;
+  string fieldOfStudy = 4;
+  string startDate = 5;
+  string endDate = 6;
+  string description = 7;
+  string provinceName = 8;
+  string deletedAt = 9;
+  string createdAt = 10;
+  string updatedAt = 11;
+  Country country = 12;
+  Province province = 13;
+  string user = 14;
+}
+
+message Experience {
+  string id = 1;
+  string title = 2;
+  string employmentType = 3;
+  string companyName = 4;
+  string startDate = 5;
+  string endDate = 6;
+  string description = 7;
+  string provinceName = 8;
+  string deletedAt = 9;
+  string createdAt = 10;
+  string updatedAt = 11;
+  string company = 12; // optional company id/fk
+  Country country = 13;
+  Province province = 14;
+  string user = 15;
+}
+
+message ApplicantProfile {
+  string id = 1;
+  string nationality = 2;
+  string dateOfBirth = 3;
+  string gender = 4;
+  repeated string speakingLanguages = 5;
+  string website = 6;
+  string whatsapp = 7;
+  string linkedin = 8;
+  string github = 9;
+  string facebook = 10;
+  string xTwitter = 11;
+  string instagram = 12;
+  string figma = 13;
+  string youtube = 14;
+  string coverPhotoUrl = 15;
+  string address = 16;
+  string createdAt = 17;
+  string updatedAt = 18;
+  string user = 19;
+  Country country = 20;
+  Province province = 21;
+}
+
+message Applicant {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string bio = 5;
+  string photoUrl = 6;
+  string photoThumbnailUrl = 7;
+  string createdAt = 8;
+  string updatedAt = 9;
+
+  ApplicantProfile profile = 10;
+
+  repeated Resume resumes = 11;
+  repeated Award awards = 12;
+  repeated Certificate certificates = 13;
+  repeated SkillRef skills = 14;
+  repeated FunctionalAreaRef functional_areas = 15;
+  repeated Education educations = 16;
+  repeated Experience experiences = 17;
+}
+
+// ======= API =======
+
+message Factor {
+  string name = 1;
+  double score = 2;   // weighted 0–100
+  string details = 3; // human description
+}
+
+message ScoreRequest {
+  Job job = 1;
+  Applicant applicant = 2;
+}
+
+message ScoreResponse {
+  double total_score = 1;     // 0..100
+  repeated Factor factors = 2;
+  string verdict = 3;         // Strong / Moderate / Weak
+}
+
+service Matcher {
+  rpc Score(ScoreRequest) returns (ScoreResponse);
+}

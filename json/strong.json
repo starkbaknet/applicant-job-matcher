@@ -1,0 +1,94 @@
+{
+  "job": {
+    "id": "job-strong",
+    "title": "AI Specialist (Python/Odoo/React, PostgreSQL)",
+    "reference": "RF0002",
+    "numberOfVacancies": 2,
+    "status": "published",
+    "isOpen": true,
+    "jobRequirements": "<ul><li>Python (Odoo), React.js, PostgreSQL, Docker, Git, REST/gRPC</li></ul>",
+    "roleSummary": "<p>We build modern web apps and ML-enabled services.</p>",
+    "dutiesAndResponsibilities": "<ul><li>Design microservices, code reviews, CI/CD</li></ul>",
+    "minimumExperience": "1",
+    "maximumExperience": "5",
+    "educationLevel": "bachelor",
+    "salaryType": "range",
+    "minimumSalary": 1000,
+    "maximumSalary": 2000,
+    "currency": "AFN",
+    "period": "monthly",
+    "workType": "full_time",
+    "gender": "any",
+    "nationality": "any",
+    "language": "any",
+    "publishDate": "2025-10-25",
+    "expiryDate": "2025-10-29",
+    "company": {
+      "id": "c-strong",
+      "name": "Netlinks Ltd.",
+      "isPublic": true,
+      "profile": { "workPolicy": "remote" },
+      "industryType": { "id": "it", "name": "Information Technology" }
+    },
+    "country": { "code": "AF", "name": "Afghanistan" },
+    "province": { "name": "Badghis" },
+    "area": { "name": "Software Engineering" }
+  },
+  "applicant": {
+    "id": "app-strong",
+    "name": "Sara Dev",
+    "email": "sara@example.com",
+    "phone": "+11234567890",
+    "bio": "Backend/ML engineer with Python (Django/Flask), React, PostgreSQL, Docker, gRPC and Odoo experience.",
+    "profile": {
+      "nationality": "Afghan",
+      "dateOfBirth": "1995-06-01T00:00:00.000Z",
+      "gender": "Female",
+      "speakingLanguages": ["English", "Dari", "Pashto"],
+      "address": "Qala-e-Naw, Badghis",
+      "country": { "code": "AF", "name": "Afghanistan" },
+      "province": { "name": "Badghis" }
+    },
+    "skills": [
+      { "skill": { "name": "Python" } },
+      { "skill": { "name": "React.js" } },
+      { "skill": { "name": "PostgreSQL" } },
+      { "skill": { "name": "Odoo" } },
+      { "skill": { "name": "Docker" } },
+      { "skill": { "name": "Git" } },
+      { "skill": { "name": "gRPC" } },
+      { "skill": { "name": "REST APIs" } }
+    ],
+    "functionalAreas": [{ "area": { "name": "Software Engineering" } }],
+    "educations": [
+      {
+        "level": "bachelor",
+        "instituteName": "Kabul University",
+        "fieldOfStudy": "Computer Science"
+      }
+    ],
+    "experiences": [
+      {
+        "title": "Backend/ML Engineer",
+        "companyName": "NetApps",
+        "startDate": "2019-01-01T00:00:00.000Z",
+        "endDate": "2023-07-01T00:00:00.000Z",
+        "description": "Python microservices, React dashboards, Odoo addons, Postgres, Docker, gRPC"
+      }
+    ],
+    "awards": [
+      {
+        "title": "Top Engineer Q2",
+        "issuedBy": "NetApps",
+        "issuedDate": "2022-07-01T00:00:00.000Z"
+      }
+    ],
+    "certificates": [
+      {
+        "title": "AWS Practitioner",
+        "issuedBy": "Amazon",
+        "issuedDate": "2023-02-01T00:00:00.000Z"
+      }
+    ]
+  }
+}
