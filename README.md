@@ -138,7 +138,7 @@ grpcurl -plaintext -d @ localhost:50051 matcher.Matcher/Score < tests/strong.jso
 
 ---
 
-## ⚡ Environment Variables
+## Environment Variables
 
 | Variable         | Default            | Description                              |
 | ---------------- | ------------------ | ---------------------------------------- |
