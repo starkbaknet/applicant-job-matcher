@@ -30,7 +30,7 @@ try:
 except Exception:
     _HAS_SK = False
 
-# Sentence-Transformers embeddings
+# Sentence-Transformers embeddings (guard with NumPy availability)
 _USE_EMBEDDINGS = True
 _HAS_ST = False
 try:
@@ -39,7 +39,7 @@ except Exception:
     _USE_EMBEDDINGS = False
 
 try:
-    from sentence_transformers import SentenceTransformer, util as st_util  # noqa: F401
+    from sentence_transformers import SentenceTransformer  # noqa: F401
 
     _HAS_ST = True
 except Exception:
@@ -77,8 +77,8 @@ def _get_embedder() -> "SentenceTransformer | None":
 
 
 def _cosine_dense(a, b) -> float:
-    # sentence-transformers returns numpy arrays; util.cos_sim returns a 1x1 tensor
-    from sentence_transformers import util as st_util  # local import to avoid hard failure on missing lib
+    # sentence-transformers util import here to avoid hard fail at module import
+    from sentence_transformers import util as st_util  # type: ignore
     return float(st_util.cos_sim(a, b).item())
 
 
@@ -92,6 +92,16 @@ def _cosine_tfidf(t1: str, t2: str) -> float:
     )
     X = vec.fit_transform([t1, t2])
     return float(_sk_cosine(X[0], X[1])[0, 0])
+
+
+# ---- fuzzy matching (optional) ----
+_HAS_RAPIDFUZZ = False
+try:
+    from rapidfuzz.fuzz import partial_ratio as _fz_partial_ratio  # type: ignore
+
+    _HAS_RAPIDFUZZ = True
+except Exception:
+    _HAS_RAPIDFUZZ = False
 
 
 # =========================
@@ -110,6 +120,21 @@ def _job_fields(job: Dict[str, Any]) -> Dict[str, str]:
         "duties": _strip_html(job.get("dutiesAndResponsibilities", "")),
         "summary": _strip_html(job.get("roleSummary", "")),
     }
+
+
+def _job_core_text(job: Dict[str, Any]) -> str:
+    """Compact job text for cross-factor comparisons (experience/cert relevance)."""
+    company = job.get("company") or {}
+    industry = (company.get("industryType") or {}).get("name", "")
+    parts = [
+        job.get("title", ""),
+        industry,
+        (job.get("area") or {}).get("name", ""),
+        _strip_html(job.get("jobRequirements", "")),
+        _strip_html(job.get("dutiesAndResponsibilities", "")),
+        _strip_html(job.get("roleSummary", "")),
+    ]
+    return " ".join(p for p in parts if p)
 
 
 def _applicant_fields(app: Dict[str, Any]) -> Dict[str, str]:
@@ -207,7 +232,7 @@ _APP_FIELDS_ORDER = ["skills", "experiences", "education", "functional_areas", "
 
 
 def _best_sim(job_txts: List[str], app_txts: List[str]) -> float:
-    """Return the max similarity between any job text and any applicant text."""
+    """Return the max similarity between any job text and any applicant text (0..1)."""
     # Embeddings path
     embedder = _get_embedder()
     if embedder is not None:
@@ -399,18 +424,49 @@ def _functional_area_match(applicant: Dict[str, Any], job: Dict[str, Any]) -> Tu
     return 0.2, f"No area overlap (job: {job_area or 'n/a'}, applicant: {', '.join(sorted(areas)) or 'n/a'})"
 
 
-def _awards_certs_bonus(applicant: Dict[str, Any]) -> Tuple[float, str]:
+def _awards_certs_bonus(applicant: Dict[str, Any], job: Dict[str, Any] | None = None) -> Tuple[float, str]:
+    """
+    Extras factor (0..1):
+      - awards component: +0.5 if any awards
+      - certificates component: up to +0.5, scaled by fuzzy/semantic relevance to job text
+        (fallback to +0.5 flat if we can't compute relevance)
+    """
     awards = applicant.get("awards") or []
     certs = applicant.get("certificates") or []
-    bonus = 0.0
-    detail = []
+
+    # Awards: simple presence bonus
+    awards_component = 0.5 if awards else 0.0
+    details: List[str] = []
     if awards:
-        bonus += 0.5
-        detail.append(f"{len(awards)} award(s)")
-    if certs:
-        bonus += 0.5
-        detail.append(f"{len(certs)} certificate(s)")
-    return min(1.0, bonus), "; ".join(detail) or "No awards/certificates"
+        details.append(f"{len(awards)} award(s)")
+
+    # Certificates: relevance-aware up to +0.5
+    cert_component = 0.0
+    cert_titles = [c.get("title") for c in certs if isinstance(c, dict) and c.get("title")]
+    if cert_titles:
+        job_text = _job_core_text(job or {})
+        if job_text.strip() and _HAS_RAPIDFUZZ:
+            # best partial_ratio across all applicant certs against the job text
+            best = 0
+            for title in cert_titles:
+                try:
+                    score = _fz_partial_ratio(str(title).lower(), job_text.lower())
+                    if score > best:
+                        best = score
+                except Exception:
+                    continue
+            rel = best / 100.0  # 0..1
+            cert_component = 0.5 * rel
+            details.append(f"{len(certs)} certificate(s), relevance {rel:.2f}")
+        else:
+            # fallback: flat +0.5 if any certs (keeps backward compatibility)
+            cert_component = 0.5
+            details.append(f"{len(certs)} certificate(s)")
+    else:
+        details.append("0 certificate(s)")
+
+    total = min(1.0, awards_component + cert_component)
+    return total, "; ".join(details)
 
 
 # =========================
@@ -422,12 +478,12 @@ def score(job: Dict[str, Any], applicant: Dict[str, Any]) -> Tuple[float, List[D
     Compute a 0..100 total score, factor breakdown, and verdict string.
     Factors:
       - Skill Match (semantic cosine, field-wise max)
-      - Experience
+      - Experience (+ semantic relevance bonus)
       - Education
       - Functional Area
       - Location
       - Languages
-      - Awards & Certificates
+      - Awards & Certificates (relevance-aware)
     """
     weights = {
         "skills": 40.0,
@@ -449,7 +505,7 @@ def score(job: Dict[str, Any], applicant: Dict[str, Any]) -> Tuple[float, List[D
         {"name": "Skill Match", "score": round(skill_ratio * weights["skills"], 2), "details": skill_detail}
     )
 
-    # 2) Experience
+    # 2) Experience (years) + semantic relevance bonus (up to +5 pts)
     years = _years_of_experience(applicant)
     try:
         min_exp = float(job.get("minimumExperience") or 0)
@@ -460,6 +516,7 @@ def score(job: Dict[str, Any], applicant: Dict[str, Any]) -> Tuple[float, List[D
     except Exception:
         max_exp = 0.0
 
+    # Base ratio from years vs. requirement
     if min_exp == 0 and max_exp == 0:
         exp_ratio = 0.7 if years > 0 else 0.0
         exp_detail = f"{years} yrs exp; no explicit requirement"
@@ -475,9 +532,34 @@ def score(job: Dict[str, Any], applicant: Dict[str, Any]) -> Tuple[float, List[D
             else:
                 exp_ratio = 1.0
                 exp_detail = f"{years} yrs (meets/exceeds requirement)"
-    factors.append(
-        {"name": "Experience", "score": round(exp_ratio * weights["experience"], 2), "details": exp_detail}
-    )
+
+    base_points = exp_ratio * weights["experience"]
+
+    # Relevance bonus (0..+5) based on semantic similarity of job text vs applicant experience text
+    job_text = _job_core_text(job)
+    exp_texts = []
+    for e in (applicant.get("experiences") or []):
+        if isinstance(e, dict):
+            exp_texts.append(" ".join([
+                str(e.get("title") or ""),
+                str(e.get("companyName") or ""),
+                str(e.get("description") or "")
+            ]).strip())
+    applicant_exp_text = ". ".join([t for t in exp_texts if t])
+
+    relevance_bonus_pts = 0.0
+    relevance_detail = ""
+    if job_text.strip() and applicant_exp_text.strip():
+        relevance = _best_sim([job_text], [applicant_exp_text])  # 0..1
+        relevance_bonus_pts = round(5.0 * max(0.0, min(1.0, relevance)), 2)  # cap at +5 pts
+        relevance_detail = f"; relevance bonus +{relevance_bonus_pts:.2f} (sim={relevance:.2f})"
+
+    exp_points = min(weights["experience"], round(base_points + relevance_bonus_pts, 2))
+    factors.append({
+        "name": "Experience",
+        "score": exp_points,
+        "details": exp_detail + (relevance_detail if relevance_detail else "")
+    })
 
     # 3) Education
     edu_ratio, edu_detail = _education_match(applicant, job)
@@ -497,8 +579,8 @@ def score(job: Dict[str, Any], applicant: Dict[str, Any]) -> Tuple[float, List[D
     lang_ratio, lang_detail = _languages_match(applicant, job)
     factors.append({"name": "Languages", "score": round(lang_ratio * weights["languages"], 2), "details": lang_detail})
 
-    # 7) Awards & Certificates
-    extra_ratio, extra_detail = _awards_certs_bonus(applicant)
+    # 7) Awards & Certificates (relevance-aware)
+    extra_ratio, extra_detail = _awards_certs_bonus(applicant, job)
     factors.append(
         {"name": "Awards & Certificates", "score": round(extra_ratio * weights["extras"], 2), "details": extra_detail}
     )
