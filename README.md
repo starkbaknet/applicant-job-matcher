@@ -1,5 +1,7 @@
 # Applicant–Job Matcher (Semantic gRPC Service)
 
+> **Note**: This project is integrated into the jobs.af **Applicant Tracking System (ATS)**, where it is used to score applicants based on a comparison of their profiles against specific job details.
+
 A **semantic applicant–job matching microservice** built on **gRPC**.  
 Send complete **Job** and **Applicant** messages defined in `matcher.proto` — no raw JSON parsing in clients.
 
